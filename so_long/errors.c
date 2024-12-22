@@ -1,95 +1,107 @@
 #include "so_long.h"
 
-static int horizontal_walls(t_map *game)     
+static int	horizontalwall(t_vars *vars)
 {
-    int width;
-    int j;
+	int	i;
 
-    // check if the game pointer and map pointer inside game struct are NULL
-    if (!game || !game->map || game->width <= 0 || game->height <= 0)
-        return (0);
-
-    width = game->width;
-    j = 0;
-    while (j < width)
-    {
-        if (game->map[0][j] != '1' || game->map[game->height - 1][j] != '1')
-            return (0);
-        j++;
-    }
-    return (1);
+	i = 0;
+	while (i < vars->width)
+	{
+		if (vars->map[0][i] != '1' || vars->map[vars->height - 1][i] != '1')
+			return (0);
+		i++;
+	}
+	return (1);
 }
 
-static int vertical_walls(t_map *game)
+static int	verticalwall(t_vars *vars)
 {
-    int i;
-    int width;
+	int	height;
 
-    if (!game || !game->map || game->width <= 0 || game->height <= 0)
-        return (0);
-
-    i = 0;
-    width = game->width;
-    while (i < game->height)
-    {
-        if (game->map[i][0] != '1' || game->map[i][width - 1] != '1')
-            return (0);
-        i++;
-    }
-    return (1);
+	height = 0;
+	while (height < vars->height)
+	{
+		if ((vars->map[height][0] != '1' || vars->map[height][vars->width - 1] != '1'))
+			return (0);
+		height++;
+	}
+	return (1);
 }
 
-static void walls(t_map *game)
+static void	if_walls(t_vars *vars)
 {
-    int	verticalwalls;
+	int	verticalwalls;
 	int	horizontalwalls;
 
-    verticalwalls = vertical_walls(game);
-	horizontalwalls = horizontal_walls(game);
-
-    if (!(verticalwalls == 1) || !(horizontalwalls == 1))
-    {
-        ft_printf("\nThis map is missing the walls\n");
-        return (0);
-    }
-    return (1);
+	verticalwalls = verticalwall(vars);
+	horizontalwalls = horizontalwall(vars);
+	if (!verticalwalls || !horizontalwalls)
+	{
+		printf("This map is missing the walls\n");
+		exit_game(vars);
+	}
 }
-void valid_characters(t_map *game, int height, int width)
+
+static void	count_checker(t_vars *vars, int height, int width)
 {
-    if (game->map[height][width] != '1' &&
-            game->map[height][width] != '0' &&
-            game->map[height][width] != 'P' &&
-            game->map[height][width] != 'C' &&
-            game->map[height][width] != 'E' &&
-            game->map[height][width] != '\n')
-        ft_printf("Error, invalid character");
-    if (game->map[height][width] == 'P')
-        game->player_count++;
-    if (game->map[height][width] == 'C')
-        game->collectibles_count++;
-    if (game->map[height][width] == 'E')
-        game->exit_count++;
+	if (vars->map[height][width] != '1' &&
+		vars->map[height][width] != '0' &&
+		vars->map[height][width] != 'P' &&
+		vars->map[height][width] != 'E' &&
+		vars->map[height][width] != 'C' &&
+		vars->map[height][width] != '\n')
+	{
+		printf("\nError Here! %c\n", vars->map[height][width]);
+		exit_game(vars);
+	}
+	if (vars->map[height][width] == 'C')
+			vars->collectible_count++;
+	if (vars->map[height][width] == 'P')
+			vars->player_count++;
+	if (vars->map[height][width] == 'E')
+			vars->exit_count++;
+}
+
+void check_counts(t_vars *vars)
+{
+    if (vars->player_count == 0)
+        printf("Player is missing!\n");
+    if (vars->collectible_count < 1)
+        printf("No collectibles found!\n");
+    if (vars->exit_count != 1)
+        printf("Exit is missing or invalid!\n");
+}
+
+void character_valid(t_vars *vars)
+{
+    int height = 0, width;
+
+    vars->player_count = 0;
+    vars->collectible_count = 0;
+    vars->exit_count = 0;
     
-    if (game->player_count != 1 || game->exit_count != 1 || game->collectibles_count < 1)
-        ft_printf("Ups, issue with your player, exit or collectible!");
-}
-
-void check_errors(t_map *game)
-{
-    int height;
-    int width;
-
-    walls(game);
-    height = 0;
-    while (height < game->height)
+    while (height < vars->height - 1)
     {
-        int width = 0;
-        while (width < game->width)
+        width = 0;
+        while (width <= vars->width)
         {
-            valid_characters(game, height, width);
+            count_checker(vars, height, width);
             width++;
         }
         height++;
     }
+    
+    if (vars->player_count != 1 || vars->collectible_count < 1 || vars->exit_count != 1)
+    {
+        printf("Error: Something is wrong!\n");
+        check_counts(vars);
+        exit_game(vars);
+    }
 }
-vo
+
+
+void	check_errors(t_vars *vars)
+{
+	if_walls(vars);
+	character_valid(vars);
+}
