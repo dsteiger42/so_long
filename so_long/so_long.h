@@ -2,6 +2,7 @@
 #define SO_LONG_H
 
 #define BUFFER_SIZE 1024
+#define VISITED 2
 
 # define WALLS '1'
 # define FLOOR '0'
@@ -40,6 +41,7 @@ typedef struct s_vars
     int fd;
     int player_count;
     int collectible_count;
+    int check_coll;
     int exit_count;
 
     void    *mlx;
@@ -103,7 +105,12 @@ int		buffer_clear(char *line);
 char	*free_buf(char *buf);
 char	*get_next_line(int fd);
 
-
+void	free_arr(char **arr, int height);
+void	free_temp_map(char **map);
+char	**copy_map(char **map, int height);
+int flood_fill_map(char **map, int y, int x, t_vars *vars);
+int check_flood_fill(char **map, t_vars *vars);
+int check_valid_path(t_vars *vars);
 
 #endif
 
